@@ -1,16 +1,20 @@
 {
-  "name": "desktop-context-menu",
-  "version": "0.0.0",
-  "description": "",
+  "name": "desktop-context",
+  "version": "0.0.1",
+  "description": "A simple node library to add programs to your Windows desktop context menu.",
   "main": "index.js",
-  "bin": {
-    "desktop-context": "index.js"
-  },
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": {
+    "name": "Josh Hawkins",
+    "email": "hawkinswritescode@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hawkins/desktop-context.git"
+  },
   "license": "ISC",
   "dependencies": {
     "is-admin": "^2.1.1",

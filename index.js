@@ -4,17 +4,15 @@ const Registry = require("winreg");
 const isAdmin = require("is-admin");
 const fs = require("fs");
 
-isAdmin().then(admin => {
-  // "Note: For writing to this hive your program has to run with admin privileges" - winreg docs
-  if (!admin) console.warn("Not running as administrator!");
-
-  // addProgram(
-  //   "Telegram",
-  //   "C:\\Users\\Rade\\AppData\\Roaming\\Telegram Desktop\\Telegram.exe",
-  //   listCurrentKeys
-  // );
-  // removeProgram("Telegram", listCurrentKeys);
-});
+module.exports = {
+  getCurrentKeys,
+  listCurrentKeys,
+  addKey,
+  removeKey,
+  getChildKey,
+  addProgram,
+  removeProgram: removeKey
+};
 
 function getCurrentKeys(callback) {
   var key = Registry({
@@ -55,33 +53,31 @@ function removeKey(name, callback) {
 }
 
 function addProgram(name, path, callback) {
-  // Example execution:
-  // addProgram(
-  //   "Telegram",
-  //   "C:\\Users\\Rade\\AppData\\Roaming\\Telegram Desktop\\Telegram.exe",
-  //   listCurrentKeys
-  // );
-  addKey(name, key => {
-    // Add icon value
-    key.set("Icon", "REG_SZ", path, err => {
-      if (err) {
-        console.error(err);
-      } else {
-        // Create command key
-        var commandKey = Registry({
-          hive: Registry.HKCR,
-          key: `\\Directory\\Background\\shell\\${name}\\command`
-        });
-        commandKey.create(() => {
-          // Set executable path
-          commandKey.set(Registry.DEFAULT_VALUE, "REG_SZ", path, err => {
-            if (err) console.error(err);
-            else if (callback) callback();
+  isAdmin().then(admin => {
+    // "Note: For writing to this hive your program has to run with admin privileges" - winreg docs
+    if (!admin) console.warn("Not running as administrator!");
+
+    // Add the program's key
+    addKey(name, key => {
+      // Add icon
+      key.set("Icon", "REG_SZ", path, err => {
+        if (err) {
+          console.error(err);
+        } else {
+          // Add command
+          var commandKey = Registry({
+            hive: Registry.HKCR,
+            key: `\\Directory\\Background\\shell\\${name}\\command`
           });
-        });
-      }
+          commandKey.create(() => {
+            // Set path
+            commandKey.set(Registry.DEFAULT_VALUE, "REG_SZ", path, err => {
+              if (err) console.error(err);
+              else if (callback) callback();
+            });
+          });
+        }
+      });
     });
   });
 }
-
-var removeProgram = removeKey;
