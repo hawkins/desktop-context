@@ -4,11 +4,6 @@ const Registry = require("winreg");
 const isAdmin = require("is-admin");
 const fs = require("fs");
 
-var shellKey = Registry({
-  hive: Registry.HKCR,
-  key: "\\Directory\\Background\\shell"
-});
-
 isAdmin().then(admin => {
   // "Note: For writing to this hive your program has to run with admin privileges" - winreg docs
   if (!admin) console.warn("Not running as administrator!");
@@ -18,10 +13,15 @@ isAdmin().then(admin => {
   //   "C:\\Users\\Rade\\AppData\\Roaming\\Telegram Desktop\\Telegram.exe",
   //   listCurrentKeys
   // );
+  // removeProgram("Telegram", listCurrentKeys);
 });
 
 function getCurrentKeys(callback) {
-  shellKey.keys((err, items) => {
+  var key = Registry({
+    hive: Registry.HKCR,
+    key: "\\Directory\\Background\\shell"
+  });
+  key.keys((err, items) => {
     if (err) console.error("ERROR: " + err);
     else if (callback) callback(items);
   });
@@ -31,14 +31,26 @@ function listCurrentKeys() {
   getCurrentKeys(items => items.map(item => console.log(item.key)));
 }
 
-function addKey(name, callback) {
-  var key = Registry({
+function getChildKey(name) {
+  return Registry({
     hive: Registry.HKCR,
     key: `\\Directory\\Background\\shell\\${name}`
   });
+}
+
+function addKey(name, callback) {
+  var key = getChildKey(name);
   key.create(err => {
     if (err) console.error(err);
     else if (callback) callback(key);
+  });
+}
+
+function removeKey(name, callback) {
+  var key = getChildKey(name);
+  key.destroy(err => {
+    if (err) console.error(err);
+    else if (callback) callback();
   });
 }
 
@@ -71,3 +83,5 @@ function addProgram(name, path, callback) {
     });
   });
 }
+
+var removeProgram = removeKey;
